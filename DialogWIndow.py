@@ -6,6 +6,7 @@
 
 from PyQt5.QtWidgets import *
 import matplotlib.pyplot as plt
+from plotMotorChar_2 import startGraph
 
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
