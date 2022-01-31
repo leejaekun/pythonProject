@@ -17,7 +17,7 @@ class plotIO:
             buttonReply = QMessageBox.information(self, '작업 폴더 선택', FileFolder + "가 선택되었습니다.",
 
                                                   QMessageBox.Ok)
-            plotMain = plotMotorChar_2()
+            # plotMain = plotMotorChar_2()  # 이것을 왜 사용을 했는지 모르겠음.
 
             self.readPathInfo.setText(FileFolder)
 
