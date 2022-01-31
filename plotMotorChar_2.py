@@ -939,9 +939,18 @@ class startGraph(QWidget):
             self.zLabel = 'voltage [v]' 
 
     def loadFromFiles(self):
+        #  === newData 함수에 대한 정의 ====
+        # * 변수 : intpLoc, file_names, maxTorque, kType, numArray
+        #   intpLoc : 인터폴레이션할 기준. 1은 토오크 위치임.
+        #   file_names : 마우스로 선택된 파일들을 모아 놓음(튜플데이타)
+        #   maxTorque : GUI에 있는 최대 토오크 값
+        #   kType : 인터폴레이션 종류. 'cubic', 'linear', ...
+        #   numArray : GUI에 있는 n x n 개수값.
+        #
         newData = plotIO.intpArray(1, self.file_names, self.maxTorque.text(), \
             'cubic', self.numArray)
         datas = newData.calData()
+        npData = np.array(datas)  # numpy 데이타로 변환 
 
         pathName = os.path.dirname(self.file_names[0][0])
         # Debug - 데이타 확인 ----------
@@ -952,7 +961,7 @@ class startGraph(QWidget):
             wr.writerow(data)
         f.close()
         # Debug - 저장 종료 ------------
-
+                
         try :
 
             # array 개수는 신경쓰지 않음. list 로 변수를 선언하고 list 변수를 array로 바꿔주면 array 크기는 해결됨.
@@ -973,58 +982,25 @@ class startGraph(QWidget):
             neffList = list()
             neffSList = list()
 
-            # torque에 대해서 데이타 정리.
-            for name in self.file_names[0]:
+            # 데이타를 분류 하여 저장을 함. 
+            # 그래프를 종류별 데이타로 그리기 때문임.
+            for row in range(0, len(self.file_names[0])):
+                speedList.append(npData[14*row+0, :])    
+                tqList.append(npData[   14*row+1, :])    # 2 - 11 - 20
+                poList.append(npData[   14*row+2, :])   
+                voltList.append(npData[ 14*row+3, :])   
+                curList.append(npData[  14*row+6, :])    
+                effList.append(npData[  14*row+11, :])    
+                effSList.append(npData[ 14*row+12, :])    
 
-                fname = os.path.basename(name)
-                spdChar, tr = fname.split('r')
-                spdName = float(spdChar)
-
-                try :
-                    # https://pythonq.com/so/python/249681 genfromtxt
-                    # print('>>>> ' + name)
-                    data = np.genfromtxt(name,  dtype='float')
-
-                except FileNotFoundError as e:
-                    QMessageBox.warning(self, '경고',e)
-
-                # data = np.genfromtxt('./' + str(name) + 'rpm.txt', dtype='float')
-                # 1개 루프에서 속도 1개의 파일을 한번에 읽어옵니다.
-                if data[len(data) - 1, 1] > float(self.maxTorque.text()) :
-                    tqDiv = np.linspace(data[0, 1], float(self.maxTorque.text()), num=self.numArray, endpoint=True)
-                else :
-                    tqDiv = np.linspace(data[0, 1], data[len(data) - 1, 1], num=self.numArray, endpoint=True)
-                # print(data[0, 1], data[len(data) - 1, 1], self.maxTorque)
-
-                # tqDiv = np.linspace(data[0, 1], data[len(data) - 1, 1], num=self.numArray, endpoint=True)
-                # 격자를 나누는 기준으로 토오크로 하며, 그 값는 2번쨰 열에 있습니다.
-                ftq =   interpolate.interp1d(data[:, 1], data[:, 1], kind='cubic')
-                fPo =   interpolate.interp1d(data[:, 1], data[:, 2], kind='cubic')
-                fVolt = interpolate.interp1d(data[:, 1], data[:, 3], kind='cubic')
-                fCur =  interpolate.interp1d(data[:, 1], data[:, 6], kind='cubic')
-                fEff =  interpolate.interp1d(data[:, 1], data[:, 11],kind='cubic')
-                fEffS = interpolate.interp1d(data[:, 1], data[:, 12], kind='cubic')
-                fspeed = interpolate.interp1d(data[:, 1], data[:, 0], kind='cubic')
-                # yspeed.fill(spdName)  # 1줄짜리 'name'값으로 되어있는 행렬 만들기.
-
-                ytq = ftq(tqDiv)
-                yVolt = fVolt(tqDiv)
-                yCur = fCur(tqDiv)
-                yEff = fEff(tqDiv)
-                yEffS = fEffS(tqDiv)
-                yPo = fPo(tqDiv)
-                yspeed = fspeed(tqDiv)
-
-                # 초기화 시킨 리스트 변수에 데이타를 쌓아 놓는다.
-                # np.array 를 사용을 하면 마지막에 한줄이 더 발생을 함. 이유는 모르겠음
-                # np array를 초기화 하면, 사이즈를 알아야 하는데... 리스트를 사용하면 크기를 몰라도 됨. (장점일까?)
-                speedList.append(yspeed)
-                tqList.append(ytq)
-                poList.append(yPo)
-                voltList.append(yVolt)
-                curList.append(yCur)
-                effList.append(yEff)
-                effSList.append(yEffS)
+            # Debug - 데이타 확인 ----------
+            f = open(pathName+'/tqs.csv', \
+                'w', encoding='utf-8', newline='')
+            wr = csv.writer(f)
+            for data in tqList :
+                wr.writerow(data)
+            f.close()
+            # Debug - 저장 종료 ------------
 
             # 데이타가 완성이 되면 리스트 변수를 np array로 변경을 한다.
             speed = np.array(speedList)
@@ -1034,36 +1010,17 @@ class startGraph(QWidget):
             cur = np.array(curList)
             eff = np.array(effList)
             effS = np.array(effSList)
-            # print(tq)
-            # print(type(speed))
-
+            
+            
+            # 전압으로 데이타 정리 
             # max Voltage 이하 값으로 데이타 정리.
-
             divList = np.linspace(20, 2000, 100).astype(np.int)
             VoltPer = 0.0001
+            newData = plotIO.intArrayLine(1, self.file_names, self.maxTorque.text(), \
+                    'cubic', self.numArray, divList, VoltPer, \
+                    speed, tq, po, volt, cur, eff, effS)
+            
             find = 0
-
-            # # Debug - 데이타 확인 ----------
-            # f = open('speed.csv', 'w', encoding='utf-8', newline='')
-            # wr = csv.writer(f)
-            # for data in speed :
-            #     wr.writerow(data)
-            # f.close()
-            # # Debug - 저장 종료 ------------
-            # # Debug - 데이타 확인 ----------
-            # f = open('tq.csv', 'w', encoding='utf-8', newline='')
-            # wr = csv.writer(f)
-            # for data in tq :
-            #     wr.writerow(data)
-            # f.close()
-            # # Debug - 저장 종료 ------------
-            # # Debug - 데이타 확인 ----------
-            # f = open('volt.csv', 'w', encoding='utf-8', newline='')
-            # wr = csv.writer(f)
-            # for data in volt :
-            #     wr.writerow(data)
-            # f.close()
-            # # Debug - 저장 종료 ------------
 
             for row in range(0, len(volt)):
                 # print('column = ' + str(col))
