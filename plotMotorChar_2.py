@@ -20,11 +20,15 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy import interpolate
 
-import DialogWIndow
-from plotIO import *
+# import dynamo.DialogWIndow
+# import dynamo.plotIO
+# from dynamo.DialogWIndow import VietnamPackage 
+# >> 클래스를 from 으로 호출하여 package 이름을 쓰지 않고 사용.
+
+from dynamo import *
+# from dynamo import plotIO 
 
 class startGraph(QWidget):
-    command = QtCore.pyqtSignal(str)
 
     def __init__(self) :
         super().__init__()
@@ -180,10 +184,12 @@ class startGraph(QWidget):
         self.readMDF.setStyleSheet('background-color:#FF0000')
         # 색상코드보기 : https://html-color-codes.info/Korean/
 
-        ioTool = plotIO()
+        # ioTool = dynamo.plotIO.changeFolder()
+        # ioTool.openPath()
+        trip_to = plotIO.ThailandPackage()
+        trip_to.detail()
 
         self.readPath = QPushButton("작업경로", self)
-        # self.readPath.clicked.connect(ioTool.openPath)
         self.readPath.clicked.connect(self.openPath)
         self.readPath.setToolTip("작업 경로를 설정합니다.")
         self.readPath.setStyleSheet('background-color:#CEECF5')
@@ -390,16 +396,15 @@ class startGraph(QWidget):
         self.readPathInfo.setText(f.read())
         f.close()
 
-
     def openPath(self):
         FileFolder = QFileDialog.getExistingDirectory(self, 'Find Folder')
 
         if not FileFolder :
-            buttonReply = QMessageBox.information(self, '작업 폴더 선택', "폴더를 선택하지 않았습니다.",
-                                                  QMessageBox.Ok)
+            buttonReply = QMessageBox.information(self, '작업 폴더 선택', \
+                "폴더를 선택하지 않았습니다.", QMessageBox.Ok)
         else :
-            buttonReply = QMessageBox.information(self, '작업 폴더 선택', FileFolder + "가 선택되었습니다.",
-                                                  QMessageBox.Ok)
+            buttonReply = QMessageBox.information(self, '작업 폴더 선택', \
+                FileFolder + "가 선택되었습니다.", QMessageBox.Ok)
             self.readPathInfo.setText(FileFolder)
 
             # 표준위치에 경로 저장
@@ -931,9 +936,23 @@ class startGraph(QWidget):
             self.zLabel = 'efficiency [%]'
         elif self.zAxisCombo.currentIndex() == 7:
             self.paraZ = self.volt
-            self.zLabel = 'voltage [v]'
+            self.zLabel = 'voltage [v]' 
 
     def loadFromFiles(self):
+        newData = plotIO.intpArray(1, self.file_names, self.maxTorque.text(), \
+            'cubic', self.numArray)
+        datas = newData.calData()
+
+        pathName = os.path.dirname(self.file_names[0][0])
+        # Debug - 데이타 확인 ----------
+        f = open(pathName+'/datas.csv', \
+            'w', encoding='utf-8', newline='')
+        wr = csv.writer(f)
+        for data in datas :
+            wr.writerow(data)
+        f.close()
+        # Debug - 저장 종료 ------------
+
         try :
 
             # array 개수는 신경쓰지 않음. list 로 변수를 선언하고 list 변수를 array로 바꿔주면 array 크기는 해결됨.
@@ -963,7 +982,7 @@ class startGraph(QWidget):
 
                 try :
                     # https://pythonq.com/so/python/249681 genfromtxt
-                    print('>>>> ' + name)
+                    # print('>>>> ' + name)
                     data = np.genfromtxt(name,  dtype='float')
 
                 except FileNotFoundError as e:
@@ -1203,7 +1222,7 @@ class startGraph(QWidget):
             # Debug - 저장 종료 ------------
 
             self.textBrowser.append('=== 데이타를 모두 불러왔습니다. ====')
-            print('데이타를 모두 불러왔습니다.')
+            # print('데이타를 모두 불러왔습니다.')
             #
             #
             # print(self.speed)
@@ -1220,11 +1239,10 @@ class startGraph(QWidget):
             QMessageBox.warning(self, '경고',e)
 
     def openDialog(self):
-
+        print(">>> openDialog")
         try:
             self.file_names = QFileDialog.getOpenFileNames(self, 'Open file', self.readPathInfo.text(),
                                                            "Speed files (*.txt)")
-
             if self.file_names[0]:
                 self.dataLogic = True
                 for file in self.file_names[0]:
@@ -1233,10 +1251,12 @@ class startGraph(QWidget):
             else :
                 # print('file not selected!')
                 QMessageBox.warning(self, '경고','파일을 선택하지 않았습니다.')
-
             # 파일 데이타를 불러옴. 1번만 불러서 계속 사용함.
 
-            # 파일 이름이 정상적으로 되어 있는지 확인을 함.
+            # loadData = plotIO.intpArray(1, self.file_names)
+            # aaa = loadData.calData()
+
+            # 파일 이름이 정상적으로 되어 있는지 확인을 함.s
             for name in self.file_names[0]:
                 fname = os.path.basename(name)  # 파일 이름만 추출함.
                 if (('rpm' in fname) == False):  # https://ponyozzang.tistory.com/532 파일이름 안에 'rpm'이 있는 경우
