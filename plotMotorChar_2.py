@@ -952,15 +952,15 @@ class startGraph(QWidget):
         datas = newData.calData()
         npData = np.array(datas)  # numpy 데이타로 변환 
 
-        pathName = os.path.dirname(self.file_names[0][0])
-        # Debug - 데이타 확인 ----------
-        f = open(pathName+'/datas.csv', \
-            'w', encoding='utf-8', newline='')
-        wr = csv.writer(f)
-        for data in datas :
-            wr.writerow(data)
-        f.close()
-        # Debug - 저장 종료 ------------
+        # pathName = os.path.dirname(self.file_names[0][0])
+        # # Debug - 데이타 확인 ----------
+        # f = open(pathName+'/datas.csv', \
+        #     'w', encoding='utf-8', newline='')
+        # wr = csv.writer(f)
+        # for data in datas :
+        #     wr.writerow(data)
+        # f.close()
+        # # Debug - 저장 종료 ------------
                 
         try :
 
@@ -974,14 +974,6 @@ class startGraph(QWidget):
             effSList = list()
             poList = list()
 
-            ntqList = list()
-            nspeedList = list()
-            npoList = list()
-            nvoltList = list()
-            ncurList = list()
-            neffList = list()
-            neffSList = list()
-
             # 데이타를 분류 하여 저장을 함. 
             # 그래프를 종류별 데이타로 그리기 때문임.
             for row in range(0, len(self.file_names[0])):
@@ -993,14 +985,14 @@ class startGraph(QWidget):
                 effList.append(npData[  14*row+11, :])    
                 effSList.append(npData[ 14*row+12, :])    
 
-            # Debug - 데이타 확인 ----------
-            f = open(pathName+'/tqs.csv', \
-                'w', encoding='utf-8', newline='')
-            wr = csv.writer(f)
-            for data in tqList :
-                wr.writerow(data)
-            f.close()
-            # Debug - 저장 종료 ------------
+            # # Debug - 데이타 확인 ----------
+            # f = open(pathName+'/tqs.csv', \
+            #     'w', encoding='utf-8', newline='')
+            # wr = csv.writer(f)
+            # for data in tqList :
+            #     wr.writerow(data)
+            # f.close()
+            # # Debug - 저장 종료 ------------
 
             # 데이타가 완성이 되면 리스트 변수를 np array로 변경을 한다.
             speed = np.array(speedList)
@@ -1011,172 +1003,48 @@ class startGraph(QWidget):
             eff = np.array(effList)
             effS = np.array(effSList)
             
-            
             # 전압으로 데이타 정리 
             # max Voltage 이하 값으로 데이타 정리.
             divList = np.linspace(20, 2000, 100).astype(np.int)
             VoltPer = 0.0001
-            newData = plotIO.intArrayLine(1, self.file_names, self.maxTorque.text(), \
-                    'cubic', self.numArray, divList, VoltPer, \
-                    speed, tq, po, volt, cur, eff, effS)
+            newData = list()  # data 초기화 
+            
+            nData = plotIO.intArrayLine(1, self.file_names, self.maxTorque.text(), 'cubic', self.numArray, \
+                    divList, VoltPer, self.maxVoltage.text(), speed, tq, po, volt, cur, eff, effS)
+            
+            nspeed, ntq, npo, nvolt, ncur, neff, neffS = nData.calData() # return to np.array
             
             find = 0
 
-            for row in range(0, len(volt)):
-                # print('column = ' + str(col))
-                # print((volt[:, col]), (speed[:, col]))
+            # 속도에 대한 인터폴레이션 
+            # 
+            nData = plotIO.intArrayLine(1, self.file_names, self.maxTorque.text(), 'linear', self.numArray, \
+                    divList, VoltPer, self.maxVoltage.text(), nspeed, ntq, npo, nvolt, ncur, neff, neffS)
 
-                MaxTorque = max(tq[row, :])  # 각 행에서 최대 토오크 값을 찾음
-                MinTorque = min(tq[row, :])  # 각 행에서 최소 토오크 값을 찾음
+            self.speed, self.tq, self.po, self.volt, self.cur, self.eff, self.effS = \
+                nData.calDataVolt() # return to np.array
 
-                if max(volt[row, :]) > float(self.maxVoltage.text()) : # 각 행에서 최전압의 값이 제한전압보다 크면 실행.
-                    for div in divList :
-                        # print('div = {0:d} minTq = {1:.2f} maxTq = {2:.2f}'.format(div, MinTorque, MaxTorque))
-                        # print(tq[col, :], volt[col, :])
-
-                        TSet = np.linspace(MinTorque, MaxTorque, div )
-                        fVolt = interpolate.interp1d(tq[row, :], volt[row, :], kind='linear')
-                        yVolt = fVolt(TSet)
-                        for j in range(0, len(yVolt)-1) :
-                            if (yVolt[j] > float(self.maxVoltage.text())*(1-VoltPer) and (yVolt[j] < float(self.maxVoltage.text())*(1+VoltPer) )):
-                                find = True
-                                # Check Value
-                                self.textBrowser.append('j={0:4d} / TSet = {1:.2f} / yVolt = {2:.2f} '.format(j, TSet[j], yVolt[j]))
-                                print('j={0:4d} TSet = {1:.2f} yVolt = {2:.2f} '.format(j, TSet[j], yVolt[j]))
-                                break
-                            else :
-                                find = False
-                        if find == True :
-                            break
-                    TorqueSet = np.linspace(tq[row, 0], TSet[j], num=self.numArray, endpoint=True)
-                else :
-                    TorqueSet = np.linspace(tq[row, 0], MaxTorque, num=self.numArray, endpoint=True)
-
-                # print('row = {}'.format(row))
-
-                # 격자를 나누는 기준으로 전압으로 합니다.
-                # ‘linear’, ‘nearest’, ‘nearest-up’, ‘zero’, ‘slinear’, ‘quadratic’, ‘cubic’, ‘previous’, or ‘next’. ‘zero’, ‘slinear’, ‘quadratic’
-                fftq =   interpolate.interp1d(tq[row, :], tq[row, :], kind='linear')
-                ffPo =   interpolate.interp1d(tq[row, :], po[row, :], kind='linear')
-                ffVolt = interpolate.interp1d(tq[row, :], volt[row, :], kind='linear')
-                ffCur =  interpolate.interp1d(tq[row, :], cur[row, :], kind='linear')
-                ffEff =  interpolate.interp1d(tq[row, :], eff[row, :], kind='linear')
-                ffEffS = interpolate.interp1d(tq[row, :], effS[row, :], kind='linear')
-                ffSpd =  interpolate.interp1d(tq[row, :], speed[row, :], kind='linear')
-
-                yytq = fftq(TorqueSet)
-                yySpeed = ffSpd(TorqueSet)
-                yyVolt = ffVolt(TorqueSet)
-                yyCur = ffCur(TorqueSet)
-                yyEff = ffEff(TorqueSet)
-                yyEffS = ffEffS(TorqueSet)
-                yyPo = ffPo(TorqueSet)
-
-                # 초기화 시킨 리스트 변수에 데이타를 쌓아 놓는다.
-                # np.array 를 사용을 하면 마지막에 한줄이 더 발생을 함. 이유는 모르겠음.
-                nspeedList.append(yySpeed)
-                ntqList.append(yytq)
-                npoList.append(yyPo)
-                nvoltList.append(yyVolt)
-                ncurList.append(yyCur)
-                neffList.append(yyEff)
-                neffSList.append(yyEffS)
-
-            # 데이타가 완성이 되면 리스트 변수를 np array로 변경을 한다.
-            nspeed = np.array(nspeedList)
-            ntq = np.array(ntqList)
-            npo = np.array(npoList)
-            nvolt = np.array(nvoltList)
-            ncur = np.array(ncurList)
-            neff = np.array(neffList)
-            neffS = np.array(neffSList)
-
-
-            # list 변수 초기화하여 다시쓰기.
-            tqList = list()
-            speedList = list()
-            effList = list()
-            voltList = list()
-            curList = list()
-            effSList = list()
-            poList = list()
-
-            # print(nspeed.size)   # numpy array size 확인
-            # print(ntq.size)      # numpy array size 확인
-
-            # 속도에 대해서 데이타 정리.
-            for col in range(0, self.numArray):
-                spdDiv = np.linspace(nspeed[0, col], speed[len(nspeed) - 1, col], num=self.numArray, endpoint=True)
-                # print('{0:d} {1:.2f} {2:.2f}'.format(i, nspeed[0, i], nspeed[len(nspeed)-1, i]))
-                # 격자를 나누는 기준으로 속도로 하며, 준비를 하였습니다.
-                # print(spdDiv)
-
-                # ===================================================================================================
-                # 오류 문제에 대한 해결.
-                #
-                # ValueError: A value in x_new is above the interpolation range.
-                #
-                # 정답은 아니지만 아래의 자료를 찾아서 해결을 함. 하지만 데이타가 이상할 수 있다는...
-                # https://pythonq.com/so/python/367426
-
-                fffnSpd = interpolate.interp1d(nspeed[:, col], nspeed[:, col], fill_value="extrapolate")
-                fffntq = interpolate.interp1d(nspeed[:, col], ntq[:, col], fill_value="extrapolate")
-                fffnPo = interpolate.interp1d(nspeed[:, col], npo[:, col], fill_value="extrapolate")
-                fffnVolt = interpolate.interp1d(nspeed[:, col], nvolt[:, col], fill_value="extrapolate")
-                fffnCur = interpolate.interp1d(nspeed[:, col], ncur[:, col], fill_value="extrapolate")
-                fffnEff = interpolate.interp1d(nspeed[:, col], neff[:, col], fill_value="extrapolate")
-                fffnEffS = interpolate.interp1d(nspeed[:, col], neffS[:, col], fill_value="extrapolate")
-                # ===================================================================================================
-
-                # function을 이용하여 결과값을 계산을 함.
-                yyySpd = fffnSpd(spdDiv)
-                yyyTq = fffntq(spdDiv)
-                yyyVolt = fffnVolt(spdDiv)
-                yyyCur = fffnCur(spdDiv)
-                yyyEff = fffnEff(spdDiv)
-                yyyEffS = fffnEffS(spdDiv)
-                yyyPo = fffnPo(spdDiv)
-
-                # 초기화 시킨 리스트 변수에 데이타를 쌓아 놓는다.
-                # np.array 를 사용을 하면 마지막에 한줄이 더 발생을 함. 이유는 모르겠음.
-                speedList.append(yyySpd)
-                tqList.append(yyyTq)
-                poList.append(yyyPo)
-                voltList.append(yyyVolt)
-                curList.append(yyyCur)
-                effList.append(yyyEff)
-                effSList.append(yyyEffS)
-
-            # 데이타가 완성이 되면 리스트 변수를 np array로 변경을 한다.
-            self.speed = np.array(speedList)
-            self.tq = np.array(tqList)
-            self.po = np.array(poList)
-            self.volt = np.array(voltList)
-            self.cur = np.array(curList)
-            self.eff = np.array(effList)
-            self.effS = np.array(effSList)
-
-            # Debug - 데이타 확인 ----------
-            f = open('speed.csv', 'w', encoding='utf-8', newline='')
-            wr = csv.writer(f)
-            for data in self.speed:
-                wr.writerow(data)
-            f.close()
-            # Debug - 저장 종료 ------------
-            # Debug - 데이타 확인 ----------
-            f = open('tq.csv', 'w', encoding='utf-8', newline='')
-            wr = csv.writer(f)
-            for data in self.tq:
-                wr.writerow(data)
-            f.close()
-            # Debug - 저장 종료 ------------
-            # Debug - 데이타 확인 ----------
-            f = open('volt.csv', 'w', encoding='utf-8', newline='')
-            wr = csv.writer(f)
-            for data in self.volt:
-                wr.writerow(data)
-            f.close()
-            # Debug - 저장 종료 ------------
+            # # Debug - 데이타 확인 ----------
+            # f = open('speed.csv', 'w', encoding='utf-8', newline='')
+            # wr = csv.writer(f)
+            # for data in self.speed:
+            #     wr.writerow(data)
+            # f.close()
+            # # Debug - 저장 종료 ------------
+            # # Debug - 데이타 확인 ----------
+            # f = open('tq.csv', 'w', encoding='utf-8', newline='')
+            # wr = csv.writer(f)
+            # for data in self.tq:
+            #     wr.writerow(data)
+            # f.close()
+            # # Debug - 저장 종료 ------------
+            # # Debug - 데이타 확인 ----------
+            # f = open('volt.csv', 'w', encoding='utf-8', newline='')
+            # wr = csv.writer(f)
+            # for data in self.volt:
+            #     wr.writerow(data)
+            # f.close()
+            # # Debug - 저장 종료 ------------
 
             self.textBrowser.append('=== 데이타를 모두 불러왔습니다. ====')
             # print('데이타를 모두 불러왔습니다.')
