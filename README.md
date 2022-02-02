@@ -4,6 +4,7 @@ Magtrol사의 다이나모에서 얻는 전동기 측정 데이타를 나름 간
 그래프 출력을 하루 수 있도록 프로그램 제작.
 
 ### jupiter notebook 설치 - mac terminal 
+본 문서는 jupiter notebook 으로 제작하였습니다.
 
 
 ```python
@@ -25,31 +26,31 @@ jupyter notebook
 <img src="./fig_manual/face.png" width="100%" height="100%" title="시작화면" alt="face"></img><br/>
 
 ### click mdf
-MDF 파일을 불러오며, 속도별 데이타가 있어야 하며, shift(또는 ctrl)를 이용하여 여러 file을 선택한다.  
-![mdf-open.png](attachment:mdf-open.png)
+MDF 파일을 불러오며, 속도별 데이타가 있어야 하며, shift(또는 ctrl)를 이용하여 여러 file을 선택한다. 
+<img src="./fig_manual/mdf-open.png" width="100%" height="100%" title="open MDF" alt="openMDF"></img><br/>
 
 ### 데이타 선택
 데이타는 다이나모에서 연속적으로 저장이 되므로, 그래프를 그리기 위한 1개의 속도 기준으로, 여러개의 토오크 값을 선택을 한다.
 마우스로 그래프의 점들을 선택을 한다.  
 (아직은 선택한 데이타의 수정이 되지 않으므로 한번에 한번씩 조심조심 하시길...)
-![mdf-data%20click.png](attachment:mdf-data%20click.png)
+<img src="./fig_manual/mdf-data-click.png" width="100%" height="100%" title="mdf-data-click" alt="data-click"></img><br/>
 
 ### txt 파일 불러오기.
 mdf 에서 추출한 데이타를 이용하여 만들어진 txt를 불러온다. (실제 정리된 데이타)
-![txt%20open.png](attachment:txt%20open.png)
+<img src="./fig_manual/txt-open.png" width="100%" height="100%" title="text open" alt="textOpen"></img><br/>
 
 ### 그리기 - Surface Plot 
 화면 왼쪽의 Graph type - 3D Surface Plot 선택(기본)하고 그리기 클릭.  
-![SurfacePlot.png](attachment:SurfacePlot.png)  
+<img src="./fig_manual/SurfacePlot.png" width="100%" height="100%" title="SurfacePlot" alt="SurfacePlot"></img><br/>
 
 
 ### 그리기 - Multi Axis 
 화면 왼쪽의 Graph type - Multi Axis
-![MultiAxis.png](attachment:MultiAxis.png)
+<img src="./fig_manual/MultiAxis.png" width="100%" height="100%" title="MultiAxis" alt="MultiAxis"></img><br/>
 
 ### 그리기 - Contourf Plot 
-화면 왼쪽의 Graph type - Contourf    
-![Contourf.png](attachment:Contourf.png)
+화면 왼쪽의 Graph type - Contourf   
+<img src="./fig_manual/Contourf.png" width="100%" height="100%" title="Contourf" alt="Contourf"></img><br/>
 
 # usage.txt
 본 프로그램은 Magtrol사의 다이나모메터를 이용하여 측정된 전동기 특성 데이타를 간편하게 그래프로 출력하는 프로그램입니다.
