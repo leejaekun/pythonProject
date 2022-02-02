@@ -90,7 +90,7 @@ class intArrayLine(intpArray):
     ySpeed = list()
     yTq = list()
     yPo = list()
-    yVolt = list()
+    yVoltL = list()
     yCur = list()
     yEff = list()
     yEffS = list()
@@ -110,14 +110,14 @@ class intArrayLine(intpArray):
 
               TSet = np.linspace(MinTorque, MaxTorque, div )
               fVolt = interpolate.interp1d(self.tq[row, :], self.volt[row, :], kind='linear')
-              yVolt = fVolt(TSet)
+              yVolt = fVolt(TSet) # 구분자와 저장하는 데이타간의 변수를 따로 사용함. yVolt vs. yVoltL
               for j in range(0, len(yVolt)-1) :
-                  if (yVolt[j] > float(self.maxVoltage)*(1-self.self.VoltPer) \
+                  if (yVolt[j] > float(self.maxVoltage)*(1-self.VoltPer) \
                     and (yVolt[j] < float(self.maxVoltage)*(1+self.VoltPer) )):
                       find = True
                       # Check Value
-                      self.textBrowser.append('j={0:4d} / TSet = {1:.2f} / \
-                        yVolt = {2:.2f} '.format(j, TSet[j], yVolt[j]))
+                      # self.textBrowser.append('j={0:4d} / TSet = {1:.2f} / \
+                      #   yVolt = {2:.2f} '.format(j, TSet[j], yVolt[j]))
                       print('j={0:4d} TSet = {1:.2f} yVolt = {2:.2f} '.\
                         format(j, TSet[j], yVolt[j]))
                       break
@@ -136,7 +136,7 @@ class intArrayLine(intpArray):
       # 
       yTq.append(self.interpolateReturn(self.tq[row, :], self.tq[row, :], TorqueSet, self.kType))
       ySpeed.append(self.interpolateReturn(self.tq[row, :], self.speed[row, :], TorqueSet, self.kType))
-      yVolt.append(self.interpolateReturn(self.tq[row, :], self.volt[row, :], TorqueSet, self.kType))
+      yVoltL.append(self.interpolateReturn(self.tq[row, :], self.volt[row, :], TorqueSet, self.kType))
       yCur.append(self.interpolateReturn(self.tq[row, :], self.cur[row, :], TorqueSet, self.kType))
       yEff.append(self.interpolateReturn(self.tq[row, :], self.eff[row, :], TorqueSet, self.kType))
       yEffS.append(self.interpolateReturn(self.tq[row, :], self.effS[row, :], TorqueSet, self.kType))
@@ -146,7 +146,7 @@ class intArrayLine(intpArray):
     nspeed = np.array(ySpeed)
     ntq = np.array(yTq)
     npo = np.array(yPo)
-    nvolt = np.array(yVolt)
+    nvolt = np.array(yVoltL)
     ncur = np.array(yCur)
     neff = np.array(yEff)
     neffS = np.array(yEffS)

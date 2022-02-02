@@ -25,8 +25,9 @@ from scipy import interpolate
 # from dynamo.DialogWIndow import VietnamPackage 
 # >> 클래스를 from 으로 호출하여 package 이름을 쓰지 않고 사용.
 
-from dynamo import *
-# from dynamo import plotIO 
+# from dynamo import *
+from dynamo import plotIO 
+from dynamo import DialogWIndow
 
 class startGraph(QWidget):
 
