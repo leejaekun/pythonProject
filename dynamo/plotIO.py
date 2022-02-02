@@ -58,26 +58,11 @@ class intpArray:
           tqDiv = np.linspace(data[0, 1], data[len(data) - 1, 1], \
             num=self.numArray, endpoint=True)
 
-      print(data.shape)
+      # print(data.shape)
       # print(type(self.kType))
       for col in range(0, data.shape[1]):
         nData.append(self.interpolateReturn(data[:, 1], data[:, col], tqDiv, self.kType))
-      # nData.append(self.interpolateReturn(data[:, 1], data[:, 0], tqDiv, self.kType))
-      # nData.append(self.interpolateReturn(data[:, 1], data[:, 1], tqDiv, self.kType))
-      # nData.append(self.interpolateReturn(data[:, 1], data[:, 2], tqDiv, self.kType))
-      # nData.append(self.interpolateReturn(data[:, 1], data[:, 3], tqDiv, self.kType))
-      # nData.append(self.interpolateReturn(data[:, 1], data[:, 4], tqDiv, self.kType))
-      # nData.append(self.interpolateReturn(data[:, 1], data[:, 5], tqDiv, self.kType))
-      # nData.append(self.interpolateReturn(data[:, 1], data[:, 6], tqDiv, self.kType))
-      # nData.append(self.interpolateReturn(data[:, 1], data[:, 7], tqDiv, self.kType))
-      # nData.append(self.interpolateReturn(data[:, 1], data[:, 8], tqDiv, self.kType))
-      # nData.append(self.interpolateReturn(data[:, 1], data[:, 9], tqDiv, self.kType))
-      # nData.append(self.interpolateReturn(data[:, 1], data[:, 10], tqDiv, self.kType))
-      # nData.append(self.interpolateReturn(data[:, 1], data[:, 11], tqDiv, self.kType))
-      # nData.append(self.interpolateReturn(data[:, 1], data[:, 12], tqDiv, self.kType))
-      # nData.append(self.interpolateReturn(data[:, 1], data[:, 13], tqDiv, self.kType))
-
-  
+ 
     return nData
 
   def interpolateReturn(self, initX, initY, resX, type):
@@ -165,17 +150,7 @@ class intArrayLine(intpArray):
     ncur = np.array(yCur)
     neff = np.array(yEff)
     neffS = np.array(yEffS)
-    # data = list()
-    # data.append(ySpeed)
-    # data.append(yTq)
-    # data.append(yPo)
-    # data.append(yVolt)
-    # data.append(yCur)
-    # data.append(yEff)
-    # data.append(yEffS)
-    
-    # return data
-    # return ySpeed, yTq, yPo, yVolt, yCur, yEff, yEffS   # return to lists    
+
     return nspeed, ntq, npo, nvolt, ncur, neff, neffS  #retuen np.array
 
   def calDataVolt(self):
