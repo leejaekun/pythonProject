@@ -170,7 +170,19 @@ X-Y-Z 3개의 축을 원하는 위치에 설정을 할 수 있다.
 ---
 
 
+# pyinstaller 컴파일 
+
 
 ```python
-
+pyinstaller --hidden-import scipy.spatial.transform._rotation_groups --onefile plotMotorChar.py
 ```
+
+
+      File "/tmp/ipykernel_81/1780713553.py", line 1
+        pyinstaller --hidden-import scipy.spatial.transform._rotation_groups --onefile plotMotorChar.py
+                                  ^
+    SyntaxError: invalid syntax
+
+
+
+scipy 가 있는 경우, 컴파일 에러가 발생을 함.
