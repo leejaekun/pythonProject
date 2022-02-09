@@ -161,7 +161,7 @@ class startGraph(QWidget):
         self.maxCurrent = QLineEdit('5')
         self.checkTq = QCheckBox('Max Torque', self)
         self.maxTorque = QLineEdit('5')
-        self.maxTorque.textChanged.connect(self.reLoadData)
+        # self.maxTorque.textChanged.connect(self.reLoadData) # 나중에 수정 p
 
         self.openFiles = QPushButton("파일", self)
         # self.plotG.move(520, 20)
@@ -1135,12 +1135,12 @@ class startGraph(QWidget):
             for name in self.mdf_names[0]:
                 fname = os.path.basename(name)
                 spdChar, tr = fname.split('r')  # 속도 값만을 분리해 냄.
-                if spdChar.isdigit():
-                    self.fileNameSign = True
-                    self.read_MDFtoTXT(name)  # txt 파일을 만드는 작업을 진행을 함.
-                else:
-                    QMessageBox.warning(self, '경고', '선택한 파일({})이 형식 맞지 않습니다. \n '
-                                                    '숫자 + rpm.txt. 이어야 합니다.'.format(name))
+                # if spdChar.isdigit():
+                self.fileNameSign = True
+                self.read_MDFtoTXT(name)  # txt 파일을 만드는 작업을 진행을 함.
+                # else:
+                #     QMessageBox.warning(self, '경고', '선택한 파일({})이 형식 맞지 않습니다. \n '
+                #                                     '숫자 + rpm.txt. 이어야 합니다.'.format(name))
         else:
             # print('file not selected!')
             QMessageBox.warning(self, '경고', '파일을 선택하지 않았습니다.')
@@ -1360,8 +1360,10 @@ class startGraph(QWidget):
         speed, tr = fname.split('r')
 
         # Debug - 데이타 확인 ----------
-        f = open(pathName + '/' + str(int(speed)) + 'rpm.txt', 'w', encoding='utf-8', newline='')
-        print(pathName + '/' + str(int(speed)) + 'rpm.txt')
+        f = open(pathName + '/' + fname + '.txt', 'w', encoding='utf-8', newline='')
+        print(pathName + '/' + fname + '.txt')
+        # f = open(pathName + '/' + str(int(speed)) + 'rpm.txt', 'w', encoding='utf-8', newline='')
+        # print(pathName + '/' + str(int(speed)) + 'rpm.txt')
         wr = csv.writer(f, delimiter='\t')
         for line in listData:
             wr.writerow(line)

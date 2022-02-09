@@ -4,6 +4,8 @@
 
 """
 
+import os.path
+import csv
 from PyQt5.QtWidgets import *
 import matplotlib.pyplot as plt
 
@@ -96,9 +98,10 @@ class subWindow(QDialog):
             rowData = list()
         print(self.tableData)
         print(type(self.tableData))
-        saveFile = startGraph()  # w저장은 startGraph 에서 수행을 함.
-        saveFile.saveTextFile(self.name, self.tableData)
-
+        # saveFile = plotMotorChar.startGraph()  # w저장은 startGraph 에서 수행을 함.
+        self.saveMdfTextFile(self.name, self.tableData)
+        # self.saveTextFile(self.name, self.tableData)
+# 
         # for col in range(0, len(self.my_data)) :
         #     value = self.tableWidget.item(0,col)
         #     self.tableData.append(float(value.text()))
@@ -106,8 +109,8 @@ class subWindow(QDialog):
         self.close()  # 저장이 완료되면 닫음.
 
     def closeEvent(self, QCloseEvent):
-        rtn = startGraph()
-        rtn.saveSignalFalse()
+        # rtn = startGraph()
+        # rtn.saveSignalFalse()
         self.close()
         # re = QMessageBox.question(self, '종료확인', '종료하시겠습니까?',
         #                           QMessageBox.Yes|QMessageBox.No)
@@ -157,3 +160,36 @@ class subWindow(QDialog):
 
         self.canvas.draw()
 
+    def saveTextFile(self, fileName, listData):
+        pathName = os.path.dirname(fileName)
+        fname = os.path.basename(fileName)  # 파일 이름만 추출함.
+        speed, tr = fname.split('r')
+
+        # Debug - 데이타 확인 ----------
+        f = open(pathName + '/' + str(int(speed)) +
+                 'rpm.txt', 'w', encoding='utf-8', newline='')
+        print(pathName + '/' + str(int(speed)) + 'rpm.txt')
+        wr = csv.writer(f, delimiter='\t')
+        for line in listData:
+            wr.writerow(line)
+        # for line in listSecond:
+        #     wr.writerow(line)
+        f.close()
+        # Debug - 저장 종료 ------------
+
+    def saveMdfTextFile(self, fileName, listData):
+        pathName = os.path.dirname(fileName)
+        fname = os.path.basename(fileName)  # 파일 이름만 추출함.
+        nameOnly, tr = fname.split('.')
+
+        # Debug - 데이타 확인 ----------
+        f = open(pathName + '/' + nameOnly +
+                 '.txt', 'w', encoding='utf-8', newline='')
+        print(pathName + '/' + nameOnly + '.txt')
+        wr = csv.writer(f, delimiter='\t')
+        for line in listData:
+            wr.writerow(line)
+        # for line in listSecond:
+        #     wr.writerow(line)
+        f.close()
+        # Debug - 저장 종료 ------------
