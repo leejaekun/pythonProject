@@ -8,6 +8,7 @@
 
 """
 
+from ast import Pass
 import os.path
 import sys
 import csv
@@ -176,13 +177,19 @@ class startGraph(QWidget):
         # self.plotG.resize(80, 80)
         self.plotG.clicked.connect(self.selectGraph)
         self.plotG.setToolTip("그래프를 그립니다..")
-        self.plotG.setStyleSheet('background-color:#E0ECF8')
+        self.plotG.setStyleSheet('background-color:#F6CECE')
         # 색상코드보기 : https://html-color-codes.info/Korean/
 
         self.readMDF = QPushButton("MDF", self)
         self.readMDF.clicked.connect(self.openMdfDialog)
         self.readMDF.setToolTip("MDF 를 txt 로 변환합니다.")
-        self.readMDF.setStyleSheet('background-color:#FF0000')
+        self.readMDF.setStyleSheet('background-color:#2EFE64')
+        # 색상코드보기 : https://html-color-codes.info/Korean/
+
+        self.readCSV = QPushButton("KTR", self)
+        self.readCSV.clicked.connect(self.openCSVDialog)
+        self.readCSV.setToolTip("csv 를 txt 로 변환합니다.")
+        self.readCSV.setStyleSheet('background-color:#5882FA')
         # 색상코드보기 : https://html-color-codes.info/Korean/
 
         # ioTool = dynamo.plotIO.changeFolder()
@@ -371,6 +378,7 @@ class startGraph(QWidget):
         rightLayout.addWidget(self.plotG)
         rightLayout.addStretch(1)
         rightLayout.addWidget(self.readMDF)
+        rightLayout.addWidget(self.readCSV)
         rightLayout.addStretch(1)
 
         layout = QHBoxLayout()
@@ -413,24 +421,39 @@ class startGraph(QWidget):
             f.write(self.readPathInfo.text())
             f.close()
 
-    def fileToArray(self, fileName):
+    def fileToArray(self, fileName, skipHeadLines):
 
         # numpy array로 데이타 읽기
         # 다이나모 데이타에서 curve 로 측정을 하면 1줄은 '주석', 2 ~ 3줄은 NaN 이 있으므로
         # header 는 3으로 하여 데이타를 넘어가도록 한다.
         # 읽는 데이타 타입은 실수형으로 한다.
-        # my_data = np.genfromtxt(fileName, delimiter='\t', skip_header=3, dtype='float')
-        skipHeadLines = 4
-        f = open(fileName, 'r')
+
         data = list()
         readData = list()
-        tr = csv.reader(f, delimiter='\t')
-        for row in tr:
-            data.append(row)
 
-        for row in range(skipHeadLines, len(data)-1):
+        ################################################################################
+        # CSV 를 delimiter='\t' 옵션에 따라 list 형태가 달라짐.
+        # 숫자만이 있는 경우는  delimiter='\t' 옵션을 주고, 
+        # 읽어진 문자를 실수형을 바꿔주는 부분을 추가하고 np.array 로 변환을 한다.
+        ################################################################################
+        # 문자+숫자의 경우에는 옵션을 주지 않고 읽으면 모두 문자열로 이루어진
+        # list를 얻게 되며, np변환 없이 QWidgetTable에 데이타를 넣기 간단해진다.
+        ################################################################################
+        if skipHeadLines > 0 :  # 헤드라인에 문자열이 있는 경우 
+            with open(fileName, 'r', encoding='UTF8') as f:
+                reader = csv.reader(f, delimiter='\t')
+                data = list(reader)
+
+            for row in range(skipHeadLines, len(data)-1):
             # print(data[row])
-            readData.append(self.listStrToFloat(data[row]))
+                readData.append(self.listStrToFloat(data[row]))
+        else :  # 헤드라인에 문자열까지 모두 읽는 경우 
+            with open(fileName, 'r', encoding='UTF8') as f:
+                reader = csv.reader(f)
+                readData = list(reader)
+            
+            QMessageBox.information(self, '문자가 포함된 데이타 ', \
+                "문자가 있는 파일입니다.", QMessageBox.Ok)
 
         rtnArray = np.array(readData)
 
@@ -1154,7 +1177,7 @@ class startGraph(QWidget):
         # 읽는 데이타 타입은 실수형으로 한다.
         # my_data = np.genfromtxt(fileName, delimiter='\t', skip_header=3, dtype='float')
         self.saveSignal = False
-        my_data = self.fileToArray(fileName)
+        my_data = self.fileToArray(fileName, 4) # skip head line = 4
 
         """
         0. 속도값에서 기준이 되는 속도를 찾음. 가장 많은 속도값이 있는 것부터... 찾음.
@@ -1295,6 +1318,40 @@ class startGraph(QWidget):
 
         if self.saveSignal == True:
             self.saveTextFile(fileName, listFirst)
+        # 파일 데이타를 불러옴. 1번만 불러서 계속 사용함.
+
+    def openCSVDialog(self):
+
+        self.csv_names = QFileDialog.getOpenFileNames(self, 'Open file', self.readPathInfo.text(),
+                                                       "CSV File (*.csv)")
+
+        if self.csv_names[0]: # 파일이 정상적으로 불러왔을 경우,
+            self.dataLogic = True
+            for file in self.csv_names[0]:
+                self.textBrowser.append(file)
+            self.textBrowser.append(
+                str(len(self.csv_names[0])) + ' 개의 파일을 선택하였습니다.')
+            for name in self.csv_names[0]:
+                fname = os.path.basename(name)
+                # spdChar, tr = fname.split('.')  # 속도 값만을 분리해 냄.
+                # if spdChar.isdigit():
+                # self.fileNameSign = True
+                self.read_CSVtoTXT(name)  # txt 파일을 만드는 작업을 진행을 함.
+                # else:
+                #     QMessageBox.warning(self, '경고', '선택한 파일({})이 형식 맞지 않습니다. \n '
+                #                                     '숫자 + rpm.txt. 이어야 합니다.'.format(name))
+        else:
+            # print('file not selected!')
+            QMessageBox.warning(self, '경고', '파일을 선택하지 않았습니다.')
+        # 파일 데이타를 불러옴. 1번만 불러서 계속 사용함.
+
+    def read_CSVtoTXT(self, fileName):
+        my_data = self.fileToArray(fileName, 0) # Skip headline = 0
+        self.selectColomnManual(fileName, my_data)
+    
+    def selectColomnManual(self, name, my_data):
+        dialog = DialogWIndow.subWinSelect(name, my_data)
+        dialog.exec_()
 
     def checkReadedDataManual(self, name, my_data):
         #

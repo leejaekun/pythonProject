@@ -7,6 +7,7 @@
 import os.path
 import csv
 from PyQt5.QtWidgets import *
+from PyQt5 import QtCore 
 import matplotlib.pyplot as plt
 
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -21,7 +22,6 @@ class subWindow(QDialog):
         self.name = name # 파일 이름도 같이 받음.
         super().__init__()
         self.initUI()
-        self.setLayout(self.layout)
         self.setGeometry(200, 200, 1600, 600)
         self.setWindowTitle(name + " --> .txt Converted Window")
 
@@ -49,9 +49,9 @@ class subWindow(QDialog):
         # self.tableWidget.setItem(1, 1, QTableWidgetItem("4"))
         #
         # print(listValue)
-        # for row in range(0, len(listValue)) :
-        #     for col in range(0, len(listValue[0])) :
-        #         tableWidget.setItem(row, col, QTableWidgetItem(str(listValue[row][col])))
+        # for row in range(0, len(self.my_data[0])) :
+        #     for col in range(0, len(self.my_data[0][0])) :
+        #         self.tableWidget.setItem(row, col, QTableWidgetItem(str(self.my_data[0][row][col])))
 
         self.fig = plt.Figure()
         self.canvas = FigureCanvas(self.fig)
@@ -72,7 +72,7 @@ class subWindow(QDialog):
         layoutLeftBot.addWidget(self.signNO)
         layoutRight.addWidget(self.canvas)
 
-        self.layout = layout
+        self.setLayout(layout)
 
         self.drawgrph()
 
@@ -119,7 +119,6 @@ class subWindow(QDialog):
         # else:
         #     QCloseEvent.ignore
 
-
     def click(self, event):
         thisline = event.artist
         xdata = thisline.get_xdata()
@@ -137,10 +136,9 @@ class subWindow(QDialog):
             # ERROR : IndexError: index 15 is out of bounds for axis 1 with size 15 뭔지 모르겠음.
             print("{} {} index: {}".format(self.numRows, col, ind[0]))
 
-
     def drawgrph(self):
         x = self.my_data[:,0]
-        y = self.my_data[:, 2]
+        y = self.my_data[:,2]
 
         self.fig.clear()
         ax = self.fig.add_subplot(111)
@@ -193,3 +191,101 @@ class subWindow(QDialog):
         #     wr.writerow(line)
         f.close()
         # Debug - 저장 종료 ------------
+
+
+class subWinSelect(QDialog):
+    def __init__(self, name, my_data):
+        self.my_data = my_data  # 보낸 데이타를 이렇게 받으면 됨.
+        self.name = name  # 파일 이름도 같이 받음.
+        super().__init__()
+        self.initUI()
+        self.setGeometry(200, 200, 1600, 600)
+        self.setWindowTitle(name + " --> .txt Converted Window")
+
+    def initUI(self):
+        # --------
+        self.signOK = QPushButton("ACCEPT", self)
+        self.signOK.setGeometry(50, 550, 75, 23)
+        # self.signOK.clicked.connect(self.saveFile)
+        # --------
+        self.signNO = QPushButton("PASS", self)
+        self.signNO.setGeometry(150, 550, 75, 23)
+        self.signNO.clicked.connect(self.close)
+        # #
+        # # https://wikidocs.net/5240  QTableWidget 만들기.
+        # #
+        self.tableWidget = QTableWidget(self)
+        # self.tableWidget.resize(1550, 500)
+        self.tableWidget.setRowCount(len(self.my_data)-1)
+        self.tableWidget.setColumnCount(len(self.my_data[0]))
+
+        # 데이타 저장은 click event 에서 ...
+        # self.tableWidget.setItem(0, 0, QTableWidgetItem("1"))
+        # self.tableWidget.setItem(0, 1, QTableWidgetItem("2"))
+        # self.tableWidget.setItem(1, 0, QTableWidgetItem("3"))
+        # self.tableWidget.setItem(1, 1, QTableWidgetItem("4"))
+        #
+        print(self.my_data.shape)
+        print(type(self.my_data))
+
+        column_headers = self.my_data[0].tolist()
+        self.tableWidget.setHorizontalHeaderLabels(column_headers)
+        self.tableWidget.setEditTriggers(
+            QAbstractItemView.NoEditTriggers)  # 수정금지
+        #################################################################################
+        # https://blog.naver.com/PostView.naver?blogId=anakt&logNo=221834285100&parentCategoryNo=&categoryNo=12&viewDate=&isShowPopularPosts=true&from=search
+        # 
+        # 행과 열을 하나씩 선택
+        # self.tableWidget.selectRow()
+        # self.tableWidget.selectColumn()
+        #
+        # 행과 열을 선택하고 그 값을 가져오기.
+        self.tableWidget.setSelectionMode(QAbstractItemView.MultiSelection)
+        # 컨트롤 키를 누르고 마우스를 클릭하면, 여러 Row를 동시 선택하고, 마우스만 클릭하면 하나의 Row를 선택하는 코드
+        self.tableWidget.cellClicked.connect(self.cell_click) # cellClick 이벤트를 감지하면 cell_click 함수를 실행
+        # 선택된 셀에서 행번호 열번호 가져오기
+        x = self.tableWidget.selectedIndexes() # 리스트로 선택된 행번호와 열번호가 x에 입력된다.
+        # x[0].row() #첫번째 선택된 행번호를 부르는 방법
+        # x[0].column() #첫번째 선택된 열번호를 부르는 방법
+        #################################################################################
+        print(x)
+
+        for row in range(0, len(self.my_data)-1) :
+            for col in range(0, len(self.my_data[0])) :
+                self.tableWidget.setItem(row, col, QTableWidgetItem(str(self.my_data[row+1][col])))
+
+        self.fig = plt.Figure()
+        self.canvas = FigureCanvas(self.fig)
+
+        layout = QHBoxLayout()
+        layoutLeft = QVBoxLayout()
+        layoutRight = QVBoxLayout()
+        layoutLeftTop = QVBoxLayout()
+        layoutLeftBot = QHBoxLayout()
+
+        layout.addLayout(layoutLeft)
+        layout.addLayout(layoutRight)
+        layoutLeft.addLayout(layoutLeftTop)
+        layoutLeft.addLayout(layoutLeftBot)
+
+        layoutLeftTop.addWidget(self.tableWidget)
+        layoutLeftBot.addWidget(self.signOK)
+        layoutLeftBot.addWidget(self.signNO)
+        layoutRight.addWidget(self.canvas)
+
+        self.setLayout(layout)
+
+    #################################################################################
+    # 마우스로 셀을 선택하는 루틴.
+    def cell_click(self):
+        modifiers = QApplication.keyboardModifiers()  # pyqt에서의 키보드 입력 확인방법
+        if modifiers == QtCore.Qt.ControlModifier:  # 마우스로 셀을 클릭했을 시에 컨트롤 키가 눌려져 있던 경우
+            # 여러 셀이 함께 선택되도록 한다.
+            self.tableWidget.setSelectionMode(QAbstractItemView.MultiSelection)
+        else:
+            # 하나의 셀만 선택되도록 한다.
+            self.tableWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        
+        x = self.tableWidget.selectedIndexes()
+        print(x[0].row(), x[0].column())
+    #################################################################################
