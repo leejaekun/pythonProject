@@ -189,10 +189,16 @@ class startGraph(QWidget):
         self.readMDF.setStyleSheet('background-color:#2EFE64')
         # 색상코드보기 : https://html-color-codes.info/Korean/
 
-        self.readCSV = QPushButton("KTR", self)
+        self.readCSV = QPushButton("CSV->TXT", self)
         self.readCSV.clicked.connect(self.openCSVDialog)
         self.readCSV.setToolTip("csv 를 txt 로 변환합니다.")
         self.readCSV.setStyleSheet('background-color:#5882FA')
+        # 색상코드보기 : https://html-color-codes.info/Korean/
+
+        self.readClose = QPushButton("닫기", self)
+        self.readClose.clicked.connect(self.close)
+        self.readClose.setToolTip("프로그램 종료")
+        self.readClose.setStyleSheet('background-color:#5882FA')
         # 색상코드보기 : https://html-color-codes.info/Korean/
 
         # ioTool = dynamo.plotIO.changeFolder()
@@ -383,6 +389,7 @@ class startGraph(QWidget):
         rightLayout.addWidget(self.readMDF)
         rightLayout.addWidget(self.readCSV)
         rightLayout.addStretch(1)
+        rightLayout.addWidget(self.readClose)
 
         layout = QHBoxLayout()
         layout.addLayout(leftLayout)

@@ -278,6 +278,9 @@ class subWinSelect(QDialog):
         self.tableWidget.setHorizontalHeaderLabels(column_headers)
         self.tableWidget.setEditTriggers(QAbstractItemView.NoEditTriggers)  # 수정금지
         #################################################################################
+
+        self.tableWidget.horizontalHeader().sectionClicked.connect(self.horClicked)
+
         # https://blog.naver.com/PostView.naver?blogId=anakt&logNo=221834285100&parentCategoryNo=&categoryNo=12&viewDate=&isShowPopularPosts=true&from=search
         # 
         # 행과 열을 하나씩 선택
@@ -324,7 +327,51 @@ class subWinSelect(QDialog):
 
         self.setLayout(layout)
 
+
     
+    ##############################################################################
+    # context MENU 연결 슬롯. #
+    # 1. header를 클릭하면
+    # 2. 아이템(속도, 토오크... )을 순서데로 선택을 한다.
+    # 3. 선택된 아이템이 맞는지 확인
+    # 4. 선택을 하지 않는 경우, 예외 만들기.
+    # headerItem = ('SPEED', 'TORQUE', 'POWER', 'VOLTAGE', 'CURRENT')
+    ##############################################################################
+    @QtCore.pyqtSlot(QtCore.QPoint)
+    def horClicked(self, pos):
+        # it = self.tableWidget.itemAt(pos)
+        # if it is None:
+        #     return
+        # c = it.column()
+        # item_range = QTableWidgetSelectionRange(
+        #     0, c, self.tableWidget.rowCount()-1, c)
+        # self.tableWidget.setRangeSelected(item_range, True)
+
+        menu = QMenu()
+        speed_action  = menu.addAction("to SPEED")
+        torque_action = menu.addAction("to TORQUE")
+        power_action  = menu.addAction("to POWER")
+        volt_action   = menu.addAction("to VOLTAGE")
+        cur_action    = menu.addAction("to CURRENT")
+        action = menu.exec_(self.mapToGlobal(pos))
+        # action = menu.exec_(self.table_widget.viewport().mapToGlobal(pos))
+        #########################################################################
+        # https://freeprog.tistory.com/333
+        # 헤더 배경색 설정 --> app.setStyle 설정을 해야 함
+        # 헤터 설정을 해야함. 자동으로 만들어진 헤더(숫자)의 색변경은 안됨.
+        #########################################################################
+        if action == speed_action:
+            self.colNo = self.tableWidget.selectedIndexes()[0].column()
+            item = self.tableWidget.horizontalHeaderItem(self.colNo)
+            if item is not None:
+                item.setBackground(QBrush(Qt.yellow))
+        else :
+            pass
+
+
+
+
+
     #################################################################################
     # 마우스로 셀을 선택하는 루틴. 지금은 그다지 필요가 없을 듯...
     #################################################################################
@@ -432,14 +479,18 @@ class subWinSelect(QDialog):
 
         # newArray = np.zeros((self.my_data.shape(0),len(self.colBank)))
         newList = list()
+        temp = list()
 
         for row in range(0, self.my_data.shape[0]):
-            for col in range(0, len(self.colBank)):
-                # newArray[row][col] = self.my_data[row][col]
-                newList.append(self.my_data[row][col])
-        name = self.name + "_SLT"
+            for col in self.colBank:
+                print(row, col, self.my_data[row][col])
+                temp.append(self.my_data[row][col])
+            newList.append(temp)
+            temp = list()  # list 를 초기화 할 것. 안그러면 데이타가 계속 쌓임.
+        # print(newList)
+
         sf = plotGraph()
-        sf.saveTextFile(name, newList)
+        sf.saveTextFile(self.name, newList)
 
 
 
@@ -500,8 +551,8 @@ class plotGraph():
 
         # Debug - 데이타 확인 ----------
         f = open(pathName + '/' + nameOnly +
-                 '.txt', 'w', encoding='utf-8', newline='')
-        print(pathName + '/' + nameOnly + '.txt')
+                 '_SEL.txt', 'w', encoding='utf-8', newline='')
+        print(pathName + '/' + nameOnly + '_SEL.txt')
         wr = csv.writer(f, delimiter='\t')
         for line in listData:
             wr.writerow(line)
@@ -509,3 +560,8 @@ class plotGraph():
         #     wr.writerow(line)
         f.close()
         # Debug - 저장 종료 ------------
+        # QMessageBox.information(self, '새로운 파일 저장 ',
+        #                         '_SEL.txt 파일이 생성되었습니다.', QMessageBox.Ok)
+        # 메세지 박스가 왜 에러가 나는지 모르겠음. ???
+
+
