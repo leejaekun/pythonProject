@@ -13,8 +13,10 @@ import os.path
 import sys
 import csv
 
-from PyQt5.QtWidgets import *
-from PyQt5.QtGui import *
+from PyQt5.QtWidgets import QTextBrowser, QStyleFactory, QApplication, QDialog, \
+    QLabel, QComboBox, QRadioButton, QTableWidgetItem, QVBoxLayout, QWidget, QLineEdit,\
+    QCheckBox, QPushButton, QGroupBox, QHBoxLayout, QBoxLayout, QFileDialog, QMessageBox
+from PyQt5.QtGui import QIcon
 from PyQt5 import QtCore,  QtWidgets
 
 import matplotlib.pyplot as plt
@@ -29,6 +31,7 @@ from scipy import interpolate
 # from dynamo import *
 from dynamo import plotIO 
 from dynamo import DialogWIndow
+from example.QTableSelectColumn import Widget, actionContextWidget, contextWidget
 
 class startGraph(QWidget):
 
@@ -1322,6 +1325,12 @@ class startGraph(QWidget):
 
     def openCSVDialog(self):
 
+        # 디버그용으로 사용 하였음.
+        # self.hide()               # 메일 윈도우를 닫음.
+        # self.w = contextWidget()  # 인스턴스 생성. QTableWidget 을 불러옴.
+        # self.w.exec()             # 실행 
+        # self.show()               # QDialog 가 닫히면 메일 윈도우 열기.
+        
         self.csv_names = QFileDialog.getOpenFileNames(self, 'Open file', self.readPathInfo.text(),
                                                        "CSV File (*.csv)")
 
@@ -1431,6 +1440,8 @@ class startGraph(QWidget):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+    app.setStyle(QStyleFactory.create('Fusion')) # 헤더 색상 변경을 위해 필수.
+
     window = startGraph()
 
     window.show()
