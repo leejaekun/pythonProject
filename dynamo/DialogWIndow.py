@@ -8,7 +8,7 @@ import os.path
 import csv
 from PyQt5.QtWidgets import QAbstractItemView, QPushButton, QApplication, QDialog, \
     QMenu, QTableWidgetSelectionRange, QTableWidget, QTableWidgetItem, QVBoxLayout, \
-    QHBoxLayout, QMessageBox, QLineEdit
+    QHBoxLayout, QMessageBox, QLineEdit, QLabel
 from PyQt5 import QtCore 
 from PyQt5.QtGui import QBrush
 from PyQt5.QtCore import Qt, pyqtSlot
@@ -210,7 +210,25 @@ class subWinSelect(QDialog):
         self.setWindowTitle(name + " --> .txt Converted Window")
 
     def initUI(self):
+        ##############################################################################
+        self.lblSpeed = QLabel("SPEED", self)
+        self.editSpeed = QLineEdit(self)
         # --------
+        self.lblTorque = QLabel("TORQUE", self)
+        self.editTorque = QLineEdit(self)
+        # --------
+        self.lblPower = QLabel("POWER", self)
+        self.editPower = QLineEdit(self)
+        # --------
+        self.lblVoltage = QLabel("VOLTAGE", self)
+        self.editVoltage = QLineEdit(self)
+        # --------
+        self.lblCurrent = QLabel("CURRENT", self)
+        self.editCurrent = QLineEdit(self)
+        # --------
+        self.lblEff = QLabel("EFFICIENT", self)
+        self.editEff = QLineEdit(self)
+        ##############################################################################
         self.signOK = QPushButton("ACCEPT", self)
         # self.signOK.setGeometry(50, 550, 75, 23)
         self.signOK.clicked.connect(self.saveFile)
@@ -222,7 +240,7 @@ class subWinSelect(QDialog):
         self.toGraph = QPushButton("to GRAPH", self)
         # self.signNO.setGeometry(150, 550, 75, 23)
         self.toGraph.clicked.connect(self.dataToGraph)
-        # --------
+        ##############################################################################
         self.selection = QLineEdit(self)
         # #
         # # https://wikidocs.net/5240  QTableWidget 만들기.
@@ -259,6 +277,7 @@ class subWinSelect(QDialog):
         ########################################################################################
         self.tableWidget.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.tableWidget.customContextMenuRequested.connect(self.on_customContextMenuRequested)
+        # self.tableWidget.customContextMenuRequested.connect(self.on_customContextMenuRequested)
 
         ##############################################################################
         # QTableWidget 에서 마우스로 선택된 column 값. 초기값은 -1 #
@@ -273,13 +292,17 @@ class subWinSelect(QDialog):
         ##############################################################################
         # HEADER 설정. 파일의 맨 앞줄 #
         ##############################################################################
-
         column_headers = self.my_data[0].tolist()
         self.tableWidget.setHorizontalHeaderLabels(column_headers)
         self.tableWidget.setEditTriggers(QAbstractItemView.NoEditTriggers)  # 수정금지
         #################################################################################
 
-        self.tableWidget.horizontalHeader().sectionClicked.connect(self.horClicked)
+        ##############################################################################
+        # QTable Widget 에서 HEADER 선택이 되면 colume 값을 준다. QPos 값을 주지 못함.         #
+        # contextMenu 를 사용하는데, 실행 위치를 계산하기 위하여 QPos 값이 필요. --> 포기          #
+        #
+        # self.tableWidget.horizontalHeader().sectionClicked.connect(self.horClicked)
+        ##############################################################################        
 
         # https://blog.naver.com/PostView.naver?blogId=anakt&logNo=221834285100&parentCategoryNo=&categoryNo=12&viewDate=&isShowPopularPosts=true&from=search
         # 
@@ -312,11 +335,29 @@ class subWinSelect(QDialog):
         layoutRight = QVBoxLayout()
         layoutLeftTop = QVBoxLayout()
         layoutLeftBot = QHBoxLayout()
+        
+        labelGroup = QHBoxLayout()
+        editGroup = QHBoxLayout()
 
         layout.addLayout(layoutLeft)
         layout.addLayout(layoutRight)
+        layoutLeft.addLayout(labelGroup)
+        layoutLeft.addLayout(editGroup)
         layoutLeft.addLayout(layoutLeftTop)
         layoutLeft.addLayout(layoutLeftBot)
+
+        labelGroup.addWidget(self.lblSpeed)
+        labelGroup.addWidget(self.lblTorque)
+        labelGroup.addWidget(self.lblPower)
+        labelGroup.addWidget(self.lblVoltage)
+        labelGroup.addWidget(self.lblCurrent)
+        labelGroup.addWidget(self.lblEff)
+        editGroup.addWidget(self.editSpeed)
+        editGroup.addWidget(self.editTorque)
+        editGroup.addWidget(self.editPower)
+        editGroup.addWidget(self.editVoltage)
+        editGroup.addWidget(self.editCurrent)
+        editGroup.addWidget(self.editEff)
 
         layoutLeftTop.addWidget(self.selection)
         layoutLeftTop.addWidget(self.tableWidget)
@@ -326,9 +367,7 @@ class subWinSelect(QDialog):
         layoutRight.addWidget(self.canvas)
 
         self.setLayout(layout)
-
-
-    
+  
     ##############################################################################
     # context MENU 연결 슬롯. #
     # 1. header를 클릭하면
@@ -337,62 +376,15 @@ class subWinSelect(QDialog):
     # 4. 선택을 하지 않는 경우, 예외 만들기.
     # headerItem = ('SPEED', 'TORQUE', 'POWER', 'VOLTAGE', 'CURRENT')
     ##############################################################################
-    @QtCore.pyqtSlot(QtCore.QPoint)
-    def horClicked(self, pos):
-        # it = self.tableWidget.itemAt(pos)
-        # if it is None:
-        #     return
-        # c = it.column()
-        # item_range = QTableWidgetSelectionRange(
-        #     0, c, self.tableWidget.rowCount()-1, c)
-        # self.tableWidget.setRangeSelected(item_range, True)
-
-        menu = QMenu()
-        speed_action  = menu.addAction("to SPEED")
-        torque_action = menu.addAction("to TORQUE")
-        power_action  = menu.addAction("to POWER")
-        volt_action   = menu.addAction("to VOLTAGE")
-        cur_action    = menu.addAction("to CURRENT")
-        action = menu.exec_(self.mapToGlobal(pos))
-        # action = menu.exec_(self.table_widget.viewport().mapToGlobal(pos))
-        #########################################################################
-        # https://freeprog.tistory.com/333
-        # 헤더 배경색 설정 --> app.setStyle 설정을 해야 함
-        # 헤터 설정을 해야함. 자동으로 만들어진 헤더(숫자)의 색변경은 안됨.
-        #########################################################################
-        if action == speed_action:
-            self.colNo = self.tableWidget.selectedIndexes()[0].column()
-            item = self.tableWidget.horizontalHeaderItem(self.colNo)
-            if item is not None:
-                item.setBackground(QBrush(Qt.yellow))
-        else :
-            pass
-
-
-
-
-
-    #################################################################################
-    # 마우스로 셀을 선택하는 루틴. 지금은 그다지 필요가 없을 듯...
-    #################################################################################
-    def cell_click(self):
-        modifiers = QApplication.keyboardModifiers()  # pyqt에서의 키보드 입력 확인방법
-        if modifiers == QtCore.Qt.ControlModifier:  # 마우스로 셀을 클릭했을 시에 컨트롤 키가 눌려져 있던 경우
-            # 여러 셀이 함께 선택되도록 한다.
-            self.tableWidget.setSelectionMode(QAbstractItemView.MultiSelection)
-        else:
-            # 하나의 셀만 선택되도록 한다.
-            self.tableWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
-        
-        x = self.tableWidget.selectedIndexes()
-        print(x[0].row(), x[0].column())
-    #################################################################################
-
-    ##############################################################################
     # context MENU 연결 슬롯. #
     ##############################################################################
     @QtCore.pyqtSlot(QtCore.QPoint)
     def on_customContextMenuRequested(self, pos):
+        
+        cyan = Qt.cyan
+        white = Qt.white
+        
+        print('on_customContextMenuRequested : pos = {}'.format(pos))
         it = self.tableWidget.itemAt(pos)
         if it is None:
             return
@@ -401,14 +393,18 @@ class subWinSelect(QDialog):
             0, c, self.tableWidget.rowCount()-1, c)
         self.tableWidget.setRangeSelected(item_range, True)
 
-        menu = QMenu()
-        select_column_action = menu.addAction("Select column")
-        unSelect_column_action = menu.addAction("unSelect column")
-        select_Draw_action = menu.addAction("Select + to Graph")
-        draw_action = menu.addAction("Only to Graph")
+        menu = QMenu(self)
+        spdAction = menu.addAction("to SPEED")
+        tqAction  = menu.addAction("to TORQUE")
+        poAction  = menu.addAction("to POWER")
+        volAction = menu.addAction("to VOLTAGE")
+        curAction = menu.addAction("to CURRENT")
+        effAction = menu.addAction("to EFFICIENCY")
+        drawAction = menu.addAction("DRAW GRAPH")
+        unSelAction = menu.addAction("unSelected")
         action = menu.exec_(self.mapToGlobal(pos))
         # action = menu.exec_(self.table_widget.viewport().mapToGlobal(pos))
-        if action == select_column_action:
+        if action == spdAction:
             # self.table_widget.removeColumn(c)
             self.colNo = self.tableWidget.selectedIndexes()[0].column()
             #
@@ -418,38 +414,59 @@ class subWinSelect(QDialog):
             item = self.tableWidget.horizontalHeaderItem(self.colNo)
 
             if item is not None:
-                item.setBackground(QBrush(Qt.cyan))
+                item.setBackground(QBrush(cyan))
             # 아래는 셀 색상 변경.
             # for i in range(20):
                 # item = self.table_widget.item(col, 0)
                 # item.setBackground(QBrush(Qt.red))
                 # self.table_widget.item(
                 #     i, colNo).setBackground(QBrush(Qt.red))
-            self.colBankCal(self.colNo, True)
+            self.editSpeed.setText(self.my_data[0][self.colNo])
 
-        elif action == unSelect_column_action:
-            self.colNo = self.tableWidget.selectedIndexes()[0].column()
-
-            item = self.tableWidget.horizontalHeaderItem(self.colNo)
-
-            if item is not None:
-                item.setBackground(QBrush(Qt.white))
-            
-            self.colBankCal(self.colNo, False)
-
-        elif action == select_Draw_action:
+        elif action == tqAction:
             self.colNo = self.tableWidget.selectedIndexes()[0].column()
             item = self.tableWidget.horizontalHeaderItem(self.colNo)
-
             if item is not None:
-                item.setBackground(QBrush(Qt.cyan))
-            self.dataToGraph()
+                item.setBackground(QBrush(cyan))
+            self.editTorque.setText(self.my_data[0][self.colNo])
 
-            self.colBankCal(self.colNo, True)
+        elif action == poAction:
+            self.colNo = self.tableWidget.selectedIndexes()[0].column()
+            item = self.tableWidget.horizontalHeaderItem(self.colNo)
+            if item is not None:
+                item.setBackground(QBrush(cyan))
+            self.editPower.setText(self.my_data[0][self.colNo])
 
-        elif action == draw_action:
+        elif action == volAction:
+            self.colNo = self.tableWidget.selectedIndexes()[0].column()
+            item = self.tableWidget.horizontalHeaderItem(self.colNo)
+            if item is not None:
+                item.setBackground(QBrush(cyan))
+            self.editVoltage.setText(self.my_data[0][self.colNo])
+
+        elif action == curAction:
+            self.colNo = self.tableWidget.selectedIndexes()[0].column()
+            item = self.tableWidget.horizontalHeaderItem(self.colNo)
+            if item is not None:
+                item.setBackground(QBrush(cyan))
+            self.editCurrent.setText(self.my_data[0][self.colNo])
+
+        elif action == effAction:
+            self.colNo = self.tableWidget.selectedIndexes()[0].column()
+            item = self.tableWidget.horizontalHeaderItem(self.colNo)
+            if item is not None:
+                item.setBackground(QBrush(cyan))
+            self.editEff.setText(self.my_data[0][self.colNo])
+
+        elif action == drawAction:
             self.colNo = self.tableWidget.selectedIndexes()[0].column()
             self.dataToGraph()
+
+        elif action == unSelAction:
+            self.colNo = self.tableWidget.selectedIndexes()[0].column()
+            item = self.tableWidget.horizontalHeaderItem(self.colNo)
+            if item is not None:
+                item.setBackground(QBrush(white))
 
     def colBankCal(self, val, Sel):
         # Sel == True : apped
@@ -492,8 +509,6 @@ class subWinSelect(QDialog):
         sf = plotGraph()
         sf.saveTextFile(self.name, newList)
 
-
-
     def dataToGraph(self):
         x = list()
         # print(type(self.my_data))
@@ -525,6 +540,24 @@ class subWinSelect(QDialog):
             QMessageBox.information(self, '데이타 선택하지 않음. ',
                                     "COLUMN 선택--> 마우스 우클릭 --> Select", QMessageBox.Ok)
 
+    #################################################################################
+    # 마우스로 셀을 선택하는 루틴. 지금은 그다지 필요가 없을 듯...
+    #################################################################################
+    def cell_click(self):
+        modifiers = QApplication.keyboardModifiers()  # pyqt에서의 키보드 입력 확인방법
+        if modifiers == QtCore.Qt.ControlModifier:  # 마우스로 셀을 클릭했을 시에 컨트롤 키가 눌려져 있던 경우
+            # 여러 셀이 함께 선택되도록 한다.
+            self.tableWidget.setSelectionMode(QAbstractItemView.MultiSelection)
+        else:
+            # 하나의 셀만 선택되도록 한다.
+            self.tableWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        
+        x = self.tableWidget.selectedIndexes()
+        print(x[0].row(), x[0].column())
+    #################################################################################
+
+
+     
         
 class plotGraph():
     def plot2D(self):
